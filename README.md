@@ -270,7 +270,7 @@ gifshot.takeSnapShot(function(obj) {
 // The amount of time (in seconds) to start capturing the GIF (only for HTML5 videos)
 'offset': null,
 // The number of frames to use to create the animated GIF
-// Note: Each frame is captured every 100 milleseconds of a video and every ms for existing images
+// Note: Each frame is captured every 100 milliseconds of a video and every ms for existing images
 'numFrames': 10,
 // The amount of time (10 = 1s) to stay on each frame
 'frameDuration': 1,
