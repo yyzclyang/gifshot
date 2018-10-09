@@ -40,7 +40,12 @@ const screenShot = {
             videoElement,
             videoHeight,
             videoWidth,
-            webcamVideoElement
+            webcamVideoElement,
+            waterMark,
+            waterMarkHeight,
+            waterMarkWidth,
+            waterMarkXCoordinate,
+            waterMarkYCoordinate
         } = options;
         let gifWidth = Number(options.gifWidth);
         let gifHeight = Number(options.gifHeight);
@@ -112,7 +117,9 @@ const screenShot = {
               if (saveRenderingContexts) {
                   renderingContextsToSave.push(context.getImageData(0, 0, gifWidth, gifHeight));
               }
-
+              if (waterMark) {
+                  context.drawImage(waterMark, waterMarkXCoordinate, waterMarkYCoordinate, waterMarkWidth, waterMarkHeight);
+              }
               // If there is text to display, make sure to display it on the canvas after the image is drawn
               if (text) {
                   context.font = font;

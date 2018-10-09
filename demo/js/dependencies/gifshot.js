@@ -2089,7 +2089,12 @@ var screenShot = {
             videoElement = options.videoElement,
             videoHeight = options.videoHeight,
             videoWidth = options.videoWidth,
-            webcamVideoElement = options.webcamVideoElement;
+            webcamVideoElement = options.webcamVideoElement,
+            waterMark = options.waterMark,
+            waterMarkHeight = options.waterMarkHeight,
+            waterMarkWidth = options.waterMarkWidth,
+            waterMarkXCoordinate = options.waterMarkXCoordinate,
+            waterMarkYCoordinate = options.waterMarkYCoordinate;
 
         var gifWidth = Number(options.gifWidth);
         var gifHeight = Number(options.gifHeight);
@@ -2161,7 +2166,9 @@ var screenShot = {
                 if (saveRenderingContexts) {
                     renderingContextsToSave.push(context.getImageData(0, 0, gifWidth, gifHeight));
                 }
-
+                if (waterMark) {
+                    context.drawImage(waterMark, waterMarkXCoordinate, waterMarkYCoordinate, waterMarkWidth, waterMarkHeight);
+                }
                 // If there is text to display, make sure to display it on the canvas after the image is drawn
                 if (text) {
                     context.font = font;
