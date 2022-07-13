@@ -114,9 +114,9 @@ export default function existingImages (obj = {}) {
         utils.each(loadedImages, function (index, loadedImage) {
             if (loadedImage) {
                 if(loadedImage.text) {
-                    ag.addFrame(loadedImage.img, options, loadedImage.text);
+                    ag.addFrame(loadedImage.img, loadedImage.text);
                 } else {
-                    ag.addFrame(loadedImage, options);
+                    ag.addFrame(loadedImage);
                 }
             }
         });

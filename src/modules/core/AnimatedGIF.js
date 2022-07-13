@@ -265,14 +265,10 @@ AnimatedGIF.prototype = {
   setRepeat: function (r) {
       this.repeat = r;
   },
-  addFrame: function (element, gifshotOptions, frameText) {
-      gifshotOptions = utils.isObject(gifshotOptions) ? gifshotOptions : {};
-
+  addFrame: function (element, frameText) {
       const self = this;
       const ctx = self.ctx;
-      const options = self.options;
-      const width = options.gifWidth;
-      const height = options.gifHeight;
+      const gifshotOptions = self.options;
       const fontSize = utils.getFontSize(gifshotOptions);
       const {
           filter,
@@ -300,7 +296,7 @@ AnimatedGIF.prototype = {
       try {
           ctx.filter = filter;
 
-          ctx.drawImage(element, 0, 0, width, height);
+          ctx.drawImage(element, 0, 0, gifWidth, gifHeight);
 
           if (textToUse) {
               ctx.font = font;
@@ -312,7 +308,7 @@ AnimatedGIF.prototype = {
           if(waterMark) {
             ctx.drawImage(waterMark, waterMarkXCoordinate, waterMarkYCoordinate, waterMarkWidth, waterMarkHeight);
           }
-          imageData = ctx.getImageData(0, 0, width, height);
+          imageData = ctx.getImageData(0, 0, gifWidth, gifHeight);
 
           self.addFrameImageData(imageData);
       } catch (e) {
