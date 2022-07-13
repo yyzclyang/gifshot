@@ -52,7 +52,7 @@
     "run-sequence": "^1.2.2"
   },
   "engine": {
-    "node": ">= 4.0.0"
+    "node": ">=4.0.0 <12"
   },
   "license": "MIT"
 }
