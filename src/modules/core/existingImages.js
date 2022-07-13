@@ -48,7 +48,9 @@ export default function existingImages (obj = {}) {
                 currentImage.crossOrigin = options.crossOrigin;
             }
 
-            loadedImages[index] = currentImage;
+            loadedImages[index] = {
+                img: currentImage
+            };
             loadedImagesLength += 1;
 
             if (loadedImagesLength === imagesLength) {
@@ -62,10 +64,6 @@ export default function existingImages (obj = {}) {
             }
 
             (function (tempImage) {
-                if(image.text) {
-                    tempImage.text = image.text;
-                }
-
                 tempImage.onerror = function (e) {
                     let obj;
 
@@ -80,13 +78,14 @@ export default function existingImages (obj = {}) {
                 };
 
                 tempImage.onload = function (e) {
+                    loadedImages[index] = {
+                        img: tempImage
+                    }
                     if(image.text) {
-                        loadedImages[index] = {
-                            img:tempImage,
-                            text: tempImage.text
-                        };
-                    } else {
-                        loadedImages[index] = tempImage;
+                        loadedImages[index].text = image.text;
+                    }
+                    if(image.delay) {
+                        loadedImages[index].delay = image.delay;
                     }
 
                     loadedImagesLength += 1;
@@ -113,11 +112,10 @@ export default function existingImages (obj = {}) {
     function addLoadedImagesToGif () {
         utils.each(loadedImages, function (index, loadedImage) {
             if (loadedImage) {
-                if(loadedImage.text) {
-                    ag.addFrame(loadedImage.img, loadedImage.text);
-                } else {
-                    ag.addFrame(loadedImage);
-                }
+                ag.addFrame(loadedImage.img, {
+                    text: loadedImage.text,
+                    delay: loadedImage.delay
+                });
             }
         });
 

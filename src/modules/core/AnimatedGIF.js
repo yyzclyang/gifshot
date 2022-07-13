@@ -217,17 +217,11 @@ AnimatedGIF.prototype = {
           loop: this.repeat
       };
       const options = this.options;
-      const {
-          interval
-      } = options;
       const frameDuration = options.frameDuration;
-      const existingImages = options.images;
-      const hasExistingImages = !!(existingImages.length);
       const height = options.gifHeight;
       const width = options.gifWidth;
       const gifWriter = new GifWriter(buffer, width, height, gifOptions);
       const onRenderProgressCallback = this.onRenderProgressCallback;
-      const delay = hasExistingImages ? interval * 100 : 0;
       let bufferToString;
       let gif;
 
@@ -241,7 +235,7 @@ AnimatedGIF.prototype = {
           for (let i = 0; i < frameDuration; i ++) {
               gifWriter.addFrame(0, 0, width, height, frame.pixels, {
                   palette: framePalette,
-                  delay: delay
+                  delay: frame.delay
               });
           }
       });
@@ -265,7 +259,7 @@ AnimatedGIF.prototype = {
   setRepeat: function (r) {
       this.repeat = r;
   },
-  addFrame: function (element, frameText) {
+  addFrame: function (element, frameOptions = {}) {
       const self = this;
       const ctx = self.ctx;
       const gifshotOptions = self.options;
@@ -277,6 +271,7 @@ AnimatedGIF.prototype = {
           fontWeight,
           gifHeight,
           gifWidth,
+          interval,
           text,
           textAlign,
           textBaseline,
@@ -286,10 +281,11 @@ AnimatedGIF.prototype = {
           waterMarkXCoordinate,
           waterMarkYCoordinate
       } = gifshotOptions;
-      const textXCoordinate = gifshotOptions.textXCoordinate ? gifshotOptions.textXCoordinate : textAlign === 'left' ? 1 : textAlign === 'right' ? width : width / 2;
-      const textYCoordinate = gifshotOptions.textYCoordinate ? gifshotOptions.textYCoordinate : textBaseline === 'top' ? 1 : textBaseline === 'center' ? height / 2 : height;
+      const textXCoordinate = gifshotOptions.textXCoordinate ? gifshotOptions.textXCoordinate : textAlign === 'left' ? 1 : textAlign === 'right' ? gifWidth : gifWidth / 2;
+      const textYCoordinate = gifshotOptions.textYCoordinate ? gifshotOptions.textYCoordinate : textBaseline === 'top' ? 1 : textBaseline === 'center' ? gifHeight / 2 : gifHeight;
       const font = fontWeight + ' ' + fontSize + ' ' + fontFamily;
-      const textToUse = (frameText && gifshotOptions.showFrameText) ? frameText : text;
+      const textToUse = (frameOptions.text && gifshotOptions.showFrameText) ? frameOptions.text : text;
+      const delayToUse = frameOptions.delay ? frameOptions.delay * 100 : interval * 100;
       let imageData;
 
 
@@ -310,17 +306,18 @@ AnimatedGIF.prototype = {
           }
           imageData = ctx.getImageData(0, 0, gifWidth, gifHeight);
 
-          self.addFrameImageData(imageData);
+          self.addFrameImageData(imageData, { delay: delayToUse });
       } catch (e) {
           return '' + e;
       }
   },
-  addFrameImageData: function (imageData = {}) {
+  addFrameImageData: function (imageData = {}, options = {}) {
       const frames = this.frames;
       const imageDataArray = imageData.data;
 
       this.frames.push({
           'data': imageDataArray,
+          'delay': options.delay,
           'width': imageData.width,
           'height': imageData.height,
           'palette': null,
