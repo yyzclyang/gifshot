@@ -1744,16 +1744,11 @@ AnimatedGIF.prototype = {
             loop: this.repeat
         };
         var options = this.options;
-        var interval = options.interval;
-
         var frameDuration = options.frameDuration;
-        var existingImages = options.images;
-        var hasExistingImages = !!existingImages.length;
         var height = options.gifHeight;
         var width = options.gifWidth;
         var gifWriter$$1 = new gifWriter(buffer, width, height, gifOptions);
         var onRenderProgressCallback = this.onRenderProgressCallback;
-        var delay = hasExistingImages ? interval * 100 : 0;
         var bufferToString = void 0;
         var gif = void 0;
 
@@ -1767,7 +1762,7 @@ AnimatedGIF.prototype = {
             for (var i = 0; i < frameDuration; i++) {
                 gifWriter$$1.addFrame(0, 0, width, height, frame.pixels, {
                     palette: framePalette,
-                    delay: delay
+                    delay: frame.delay
                 });
             }
         });
@@ -1791,41 +1786,40 @@ AnimatedGIF.prototype = {
     setRepeat: function setRepeat(r) {
         this.repeat = r;
     },
-    addFrame: function addFrame(element, gifshotOptions, frameText) {
-        gifshotOptions = utils.isObject(gifshotOptions) ? gifshotOptions : {};
+    addFrame: function addFrame(element) {
+        var frameOptions = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
         var self = this;
         var ctx = self.ctx;
-        var options = self.options;
-        var width = options.gifWidth;
-        var height = options.gifHeight;
+        var gifshotOptions = self.options;
         var fontSize = utils.getFontSize(gifshotOptions);
-        var _gifshotOptions = gifshotOptions,
-            filter = _gifshotOptions.filter,
-            fontColor = _gifshotOptions.fontColor,
-            fontFamily = _gifshotOptions.fontFamily,
-            fontWeight = _gifshotOptions.fontWeight,
-            gifHeight = _gifshotOptions.gifHeight,
-            gifWidth = _gifshotOptions.gifWidth,
-            text = _gifshotOptions.text,
-            textAlign = _gifshotOptions.textAlign,
-            textBaseline = _gifshotOptions.textBaseline,
-            waterMark = _gifshotOptions.waterMark,
-            waterMarkHeight = _gifshotOptions.waterMarkHeight,
-            waterMarkWidth = _gifshotOptions.waterMarkWidth,
-            waterMarkXCoordinate = _gifshotOptions.waterMarkXCoordinate,
-            waterMarkYCoordinate = _gifshotOptions.waterMarkYCoordinate;
+        var filter = gifshotOptions.filter,
+            fontColor = gifshotOptions.fontColor,
+            fontFamily = gifshotOptions.fontFamily,
+            fontWeight = gifshotOptions.fontWeight,
+            gifHeight = gifshotOptions.gifHeight,
+            gifWidth = gifshotOptions.gifWidth,
+            interval = gifshotOptions.interval,
+            text = gifshotOptions.text,
+            textAlign = gifshotOptions.textAlign,
+            textBaseline = gifshotOptions.textBaseline,
+            waterMark = gifshotOptions.waterMark,
+            waterMarkHeight = gifshotOptions.waterMarkHeight,
+            waterMarkWidth = gifshotOptions.waterMarkWidth,
+            waterMarkXCoordinate = gifshotOptions.waterMarkXCoordinate,
+            waterMarkYCoordinate = gifshotOptions.waterMarkYCoordinate;
 
-        var textXCoordinate = gifshotOptions.textXCoordinate ? gifshotOptions.textXCoordinate : textAlign === 'left' ? 1 : textAlign === 'right' ? width : width / 2;
-        var textYCoordinate = gifshotOptions.textYCoordinate ? gifshotOptions.textYCoordinate : textBaseline === 'top' ? 1 : textBaseline === 'center' ? height / 2 : height;
+        var textXCoordinate = gifshotOptions.textXCoordinate ? gifshotOptions.textXCoordinate : textAlign === 'left' ? 1 : textAlign === 'right' ? gifWidth : gifWidth / 2;
+        var textYCoordinate = gifshotOptions.textYCoordinate ? gifshotOptions.textYCoordinate : textBaseline === 'top' ? 1 : textBaseline === 'center' ? gifHeight / 2 : gifHeight;
         var font = fontWeight + ' ' + fontSize + ' ' + fontFamily;
-        var textToUse = frameText && gifshotOptions.showFrameText ? frameText : text;
+        var textToUse = frameOptions.text && gifshotOptions.showFrameText ? frameOptions.text : text;
+        var delayToUse = frameOptions.delay ? frameOptions.delay * 100 : interval * 100;
         var imageData = void 0;
 
         try {
             ctx.filter = filter;
 
-            ctx.drawImage(element, 0, 0, width, height);
+            ctx.drawImage(element, 0, 0, gifWidth, gifHeight);
 
             if (textToUse) {
                 ctx.font = font;
@@ -1837,21 +1831,23 @@ AnimatedGIF.prototype = {
             if (waterMark) {
                 ctx.drawImage(waterMark, waterMarkXCoordinate, waterMarkYCoordinate, waterMarkWidth, waterMarkHeight);
             }
-            imageData = ctx.getImageData(0, 0, width, height);
+            imageData = ctx.getImageData(0, 0, gifWidth, gifHeight);
 
-            self.addFrameImageData(imageData);
+            self.addFrameImageData(imageData, { delay: delayToUse });
         } catch (e) {
             return '' + e;
         }
     },
     addFrameImageData: function addFrameImageData() {
         var imageData = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+        var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
         var frames = this.frames;
         var imageDataArray = imageData.data;
 
         this.frames.push({
             'data': imageDataArray,
+            'delay': options.delay,
             'width': imageData.width,
             'height': imageData.height,
             'palette': null,
@@ -1964,7 +1960,9 @@ function existingImages() {
                 currentImage.crossOrigin = options.crossOrigin;
             }
 
-            loadedImages[index] = currentImage;
+            loadedImages[index] = {
+                img: currentImage
+            };
             loadedImagesLength += 1;
 
             if (loadedImagesLength === imagesLength) {
@@ -1978,10 +1976,6 @@ function existingImages() {
             }
 
             (function (tempImage) {
-                if (image.text) {
-                    tempImage.text = image.text;
-                }
-
                 tempImage.onerror = function (e) {
                     var obj = void 0;
 
@@ -1996,13 +1990,14 @@ function existingImages() {
                 };
 
                 tempImage.onload = function (e) {
+                    loadedImages[index] = {
+                        img: tempImage
+                    };
                     if (image.text) {
-                        loadedImages[index] = {
-                            img: tempImage,
-                            text: tempImage.text
-                        };
-                    } else {
-                        loadedImages[index] = tempImage;
+                        loadedImages[index].text = image.text;
+                    }
+                    if (image.delay) {
+                        loadedImages[index].delay = image.delay;
                     }
 
                     loadedImagesLength += 1;
@@ -2029,11 +2024,10 @@ function existingImages() {
     function addLoadedImagesToGif() {
         utils.each(loadedImages, function (index, loadedImage) {
             if (loadedImage) {
-                if (loadedImage.text) {
-                    ag.addFrame(loadedImage.img, options, loadedImage.text);
-                } else {
-                    ag.addFrame(loadedImage, options);
-                }
+                ag.addFrame(loadedImage.img, {
+                    text: loadedImage.text,
+                    delay: loadedImage.delay
+                });
             }
         });
 
